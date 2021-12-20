@@ -1230,9 +1230,9 @@ zxcvbn==4.4.28 \
     # via -r requirements/main.in
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==58.2.0 \
-    --hash=sha256:2551203ae6955b9876741a26ab3e767bb3242dafe86a32a749ea0d78b6792f11 \
-    --hash=sha256:2c55bdb85d5bb460bd2e3b12052b677879cffcf46c0c688f2e5bf51d36001145
+setuptools==60.0.2 \
+    --hash=sha256:451fc25d0d428b69d28e7e519228eafc4e9bd827c2836f961747fe8ad97936f7 \
+    --hash=sha256:e2b6b147ffc384f3722b567f678379c70b96ac4f195f30490035115b5fe63e2f
     # via
     #   -r requirements/main.in
     #   google-api-core
