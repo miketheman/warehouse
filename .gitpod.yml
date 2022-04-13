@@ -1,0 +1,37 @@
+# This configuration file is for Gitpod
+# See https://www.gitpod.io/docs/config-gitpod-file for more reference
+
+tasks:
+  # Build and initialize the container images, databases
+  - name: "Build and serve"
+    init: |
+      docker-compose pull
+      make build
+      make initdb
+    command: make serve
+    env:
+      WEB_HOST: 8080
+
+# We run a lot of services, and by default each will be private
+# to the workspace. Read more: https://www.gitpod.io/docs/config-ports
+ports:
+  - port: 8080 # Web
+    onOpen: notify
+  - port: 1025 # MailDev
+    onOpen: ignore
+  - port: 1080 # MailDev
+    onOpen: ignore
+  - port: 4566 # LocalStack
+    onOpen: ignore
+  - port: 5433 # Postgres
+    onOpen: ignore
+  - port: 8125 # NotDatadog
+    onOpen: ignore
+  - port: 8200 # Vault
+    onOpen: ignore
+  - port: 8964 # NotGitHub
+    onOpen: ignore
+  - port: 9000 # Camo
+    onOpen: ignore
+  - port: 9001 # Files
+    onOpen: ignore
