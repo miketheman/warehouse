@@ -1401,9 +1401,9 @@ zxcvbn==4.4.28 \
     # via -r requirements/main.in
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==62.1.0 \
-    --hash=sha256:26ead7d1f93efc0f8c804d9fafafbe4a44b179580a7105754b245155f9af05a8 \
-    --hash=sha256:47c7b0c0f8fc10eec4cf1e71c6fdadf8decaa74ffa087e68cd1c20db7ad6a592
+setuptools==62.3.3 \
+    --hash=sha256:d1746e7fd520e83bbe210d02fff1aa1a425ad671c7a9da7d246ec2401a087198 \
+    --hash=sha256:e7d11f3db616cda0751372244c2ba798e8e56a28e096ec4529010b803485f3fe
     # via
     #   -r requirements/main.in
     #   limits
