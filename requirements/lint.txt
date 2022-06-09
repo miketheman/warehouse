@@ -176,9 +176,9 @@ types-boto3==1.0.2 \
     --hash=sha256:15f3ffad0314e40a0708fec25f94891414f93260202422bf8b19b6913853c983 \
     --hash=sha256:a6a88e94d59d887839863a64095493956efc148e747206880a7eb47d90ae8398
     # via -r requirements/lint.in
-types-certifi==2021.10.8.1 \
-    --hash=sha256:2290008f32e6ac7c69e779d04fa1bc4c6bb4c7200aa3b3b072ad5475a8968aa5 \
-    --hash=sha256:546cd3ca4466855959fbc8868fd7139a50eb55a2d1fae497e13b60af439597a3
+types-certifi==2021.10.8.3 \
+    --hash=sha256:72cf7798d165bc0b76e1c10dd1ea3097c7063c42c21d664523b928e88b554a4f \
+    --hash=sha256:b2d1e325e69f71f7c78e5943d410e650b4707bb0ef32e4ddf3da37f54176e88a
     # via -r requirements/lint.in
 types-first==2.0.2 \
     --hash=sha256:129155be97b4a65a86a2b4cbc6f2d1de5b40d2c5d370289779fd6dd0293b69f6 \
@@ -224,7 +224,6 @@ typing-extensions==4.1.1 \
     --hash=sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42 \
     --hash=sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2
     # via
-    #   black
     #   boto3-stubs
     #   mypy
 zope-event==4.5.0 \
