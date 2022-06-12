@@ -1,0 +1,73 @@
+name: CI - Python
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    name: Install Python Dependencies
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install platform dependencies
+        run: |
+          sudo apt -y update
+          sudo apt -y install libcurl4-openssl-dev libssl-dev pkg-config
+      - uses: actions/setup-python@v4
+        with:
+          python-version-file: '.python-version'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements/*.txt
+      - name: Install Python dependencies
+        run: |
+          pip install -U pip setuptools wheel
+          pip install -r requirements.txt --no-deps
+          pip install -r requirements/dev.txt
+  test:
+    needs: install
+    strategy:
+      matrix:
+        include:
+          - name: Tests
+            command: bin/tests --postgresql-host localhost
+          - name: Lint
+            command: bin/lint
+          - name: Documentation
+            command: bin/docs
+          - name: Dependencies
+            command: bin/github-actions-deps
+          - name: Licenses
+            command: bin/licenses
+          - name: Translations
+            command: bin/translations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:10.1
+        ports:
+          - 5432:5432
+    name: ${{ matrix.name }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+#      - name: Install platform dependencies
+#        run: |
+#          sudo apt -y update
+#          sudo apt -y install libcurl4-openssl-dev libssl-dev pkg-config
+      - uses: actions/setup-python@v4
+        with:
+          python-version-file: '.python-version'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements/*.txt
+      - name: Run ${{ matrix.name }}
+        run: ${{ matrix.command }}
