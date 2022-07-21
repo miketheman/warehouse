@@ -86,9 +86,9 @@ boto3==1.24.25 \
     # via
     #   -r requirements/main.in
     #   kombu
-botocore==1.27.25 \
-    --hash=sha256:345616f51ee6c4f3edefa1623cf65a954ba21576371c153dfc2b8ed642870999 \
-    --hash=sha256:cc4f025dc7187797b6b7115274399612b3fe8e777150fc9df7e132bd9e90901c
+botocore==1.27.35 \
+    --hash=sha256:9949d61959476b5a34408881bdb98f54b0642238ffb217c5260124ec58fb0c72 \
+    --hash=sha256:d2e708dd766b21c8e20a57ce1a90e98d324f871f81215efbc2dddaa42d13c551
     # via
     #   boto3
     #   s3transfer
