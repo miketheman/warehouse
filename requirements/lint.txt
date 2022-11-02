@@ -165,9 +165,9 @@ types-awscrt==0.14.7 \
     --hash=sha256:42a99eaa9e9312e723e4b3793e23c5be155cdacde20cb554ff0d74fd6780808b \
     --hash=sha256:b65355b9926ce0cdf5f9949b2c310937f6f44b2e56292243888041dce60bc47b
     # via botocore-stubs
-types-babel==2.10.0 \
-    --hash=sha256:9b9396c79839f294aa341d74e97fb309f9e3a3700f521c345487d49fb1c49116 \
-    --hash=sha256:c1e329fa1fb4b24faae333d30e38227e92a8e0477fc179100c001acba1d858c6
+types-babel==2.11.0.0 \
+    --hash=sha256:2166d0c04e963680bc6a94777cbf87f0df487938526f5c92d857c67936993002 \
+    --hash=sha256:4b3d5ed99224b7dc1a4a8b8ab668c84c816b4a978d55a43b31aea395bcc19d42
     # via -r requirements/lint.in
 types-boto3==1.0.2 \
     --hash=sha256:15f3ffad0314e40a0708fec25f94891414f93260202422bf8b19b6913853c983 \
