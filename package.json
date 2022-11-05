@@ -35,7 +35,7 @@
     "gulp-rename": "^2.0.0",
     "gulp-rev-all": "0.9.8",
     "gulp-rev-napkin": "0.1.0",
-    "gulp-rtlcss": "^1.4.1",
+    "gulp-rtlcss": "^2.0.0",
     "gulp-sourcemaps": "^3.0.0",
     "jquery": "3.5.0",
     "normalize.css": "^8.0.1",
