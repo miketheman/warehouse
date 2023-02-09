@@ -25,6 +25,7 @@ class AdminFlagValue(enum.Enum):
     DISALLOW_NEW_USER_REGISTRATION = "disallow-new-user-registration"
     DISALLOW_OIDC = "disallow-oidc"
     READ_ONLY = "read-only"
+    SEARCH_VIA_POSTGRES = "search-via-postgres"
 
 
 class AdminFlag(db.ModelBase):
