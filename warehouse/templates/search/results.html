@@ -20,12 +20,21 @@
 {% macro project_snippet(item) -%}
 <li>
   <a class="package-snippet" href="{{ request.route_path('packaging.project', name=item.normalized_name) }}">
+    {% if request.flags.enabled(AdminFlagValue.SEARCH_VIA_POSTGRES) %}
+    <h3 class="package-snippet__title">
+      <span class="package-snippet__name">{{ item.name }}</span>
+      <span class="package-snippet__version">{{ item.latest_version.version }}</span>
+      <span class="package-snippet__created">{% trans release_date=humanize(item.releases[0].created) %}Last released {{ release_date }}{% endtrans %}</span>
+    </h3>
+    <p class="package-snippet__description">{{ item.releases[0].summary }}</p>
+    {% else %}
     <h3 class="package-snippet__title">
       <span class="package-snippet__name">{{ item.name }}</span>
       <span class="package-snippet__version">{{ item.latest_version }}</span>
       <span class="package-snippet__created">{{ humanize(item.created) }}</span>
     </h3>
     <p class="package-snippet__description">{{ item.summary }}</p>
+    {% endif %}
   </a>
 </li>
 {%- endmacro %}
@@ -165,9 +174,11 @@
                 {% endtrans %}
               {% endif %}
 
+            {% if not request.flags.enabled(AdminFlagValue.SEARCH_VIA_POSTGRES) %}
               {% if page.collection.best_guess and page.collection.best_guess.freq > page.item_count %}
                 {{ suggestion_link(page.collection.best_guess) }}
               {% endif %}
+            {% endif %}
             </p>
             {% endif %}
           </div>

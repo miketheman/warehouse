@@ -16,6 +16,7 @@ import re
 
 import elasticsearch
 
+from paginate_sqlalchemy import SqlalchemyOrmPage as SQLAlchemyORMPage
 from pyramid.exceptions import PredicateMismatch
 from pyramid.httpexceptions import (
     HTTPBadRequest,
@@ -43,6 +44,7 @@ from trove_classifiers import deprecated_classifiers, sorted_classifiers
 
 from warehouse.accounts import REDIRECT_FIELD_NAME
 from warehouse.accounts.models import User
+from warehouse.admin.flags import AdminFlagValue
 from warehouse.cache.http import add_vary, cache_control
 from warehouse.cache.origin import origin_cache
 from warehouse.classifiers.models import Classifier
@@ -291,6 +293,41 @@ def _search_via_elasticsearch(
     return page
 
 
+def _search_via_postgres(request, _metrics, querystring, order, classifiers, page_num):
+    """
+    Use SQLAlchemy with `ts_vector`, `ts_query`, and `pg_trgm` to perform a
+    full-text search on:
+    - Project.name
+    - Release.summary
+    - Description.raw (truncate to 1000 characters)
+    - Release.keywords
+    """
+    # TODO: Determine how to use classifiers in search context
+
+    # TODO: Figure out proper `join` syntax to have a single record per project-release, with latest version.
+    query = (
+        request.db.query(Project)
+        .join(Project.releases)
+        .filter(Project.name.match(querystring))
+    )
+
+    # "Date last updated" dropdown adds this parameter
+    if order == "-created":
+        query = query.order_by(Release.created.desc())
+    else:
+        # Default order "Relevance". Use `similarity` function from `pg_trgm`
+        query = query.order_by(func.similarity(Project.name, querystring).desc())
+
+    page = SQLAlchemyORMPage(
+        query,
+        page=page_num,
+        items_per_page=25,
+        url_maker=paginate_url_factory(request),
+    )
+
+    return page
+
+
 @view_config(
     route_name="search",
     renderer="search/results.html",
@@ -315,9 +352,14 @@ def search(request):
     except ValueError:
         raise HTTPBadRequest("'page' must be an integer.")
 
-    page = _search_via_elasticsearch(
-        request, metrics, querystring, order, classifiers, page_num
-    )
+    if request.flags.enabled(AdminFlagValue.SEARCH_VIA_POSTGRES):
+        page = _search_via_postgres(
+            request, metrics, querystring, order, classifiers, page_num
+        )
+    else:
+        page = _search_via_elasticsearch(
+            request, metrics, querystring, order, classifiers, page_num
+        )
 
     if page.page_count and page_num > page.page_count:
         raise HTTPNotFound
