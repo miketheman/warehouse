@@ -275,6 +275,22 @@ def list_classifiers(request):
     return {"classifiers": sorted_classifiers}
 
 
+def _search_via_elasticsearch(
+    request, metrics, querystring, order, classifiers, page_num
+):
+    query = get_es_query(request.es, querystring, order, classifiers)
+
+    try:
+        page = ElasticsearchPage(
+            query, page=page_num, url_maker=paginate_url_factory(request)
+        )
+    except elasticsearch.TransportError:
+        metrics.increment("warehouse.views.search.error")
+        raise HTTPServiceUnavailable
+
+    return page
+
+
 @view_config(
     route_name="search",
     renderer="search/results.html",
@@ -293,20 +309,15 @@ def search(request):
     querystring = request.params.get("q", "").replace("'", '"')
     order = request.params.get("o", "")
     classifiers = request.params.getall("c")
-    query = get_es_query(request.es, querystring, order, classifiers)
 
     try:
         page_num = int(request.params.get("page", 1))
     except ValueError:
         raise HTTPBadRequest("'page' must be an integer.")
 
-    try:
-        page = ElasticsearchPage(
-            query, page=page_num, url_maker=paginate_url_factory(request)
-        )
-    except elasticsearch.TransportError:
-        metrics.increment("warehouse.views.search.error")
-        raise HTTPServiceUnavailable
+    page = _search_via_elasticsearch(
+        request, metrics, querystring, order, classifiers, page_num
+    )
 
     if page.page_count and page_num > page.page_count:
         raise HTTPNotFound
