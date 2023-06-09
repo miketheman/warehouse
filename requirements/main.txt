@@ -94,9 +94,7 @@ bleach==6.0.0 \
 boto3==1.26.150 \
     --hash=sha256:0ab83f1b8f997527a513152bc64fd1873536b1d92bdc98cb40f927aca6af6325 \
     --hash=sha256:be4e27d48744651fbd0898a6b51faaddd71936651167ba3c2e19855083ce137e
-    # via
-    #   -r requirements/main.in
-    #   kombu
+    # via -r requirements/main.in
 botocore==1.29.150 \
     --hash=sha256:0e8c8f0dab008418e4e136ecf2a450fa01bae5b725b7b43ff7cc13beebbf33aa \
     --hash=sha256:9af58faa67c99d860eabba4cd030b5ee5f4e7e1c301edd6a9174419f75b39334
@@ -427,9 +425,9 @@ cssselect==1.2.0 \
     --hash=sha256:666b19839cfaddb9ce9d36bfe4c969132c647b92fc9088c4e23f786b30f1b3dc \
     --hash=sha256:da1885f0c10b60c03ed5eccbb6b68d6eff248d91976fcde348f395d54c9fd35e
     # via premailer
-cssutils==2.6.0 \
-    --hash=sha256:30c72f3a5c5951a11151640600aae7b3bf10e4c0d5c87f5bc505c2cd4a26e0c2 \
-    --hash=sha256:f7dcd23c1cec909fdf3630de346e1413b7b2555936dec14ba2ebb9913bf0818e
+cssutils==2.7.0 \
+    --hash=sha256:7881646b4d16106bb66cb1ba3b399a1a9793ff68cbc0d89f9d38a853d6198912 \
+    --hash=sha256:b361836e4c39cf94f052351521e706016cc9d380026a9513a74000dbadcb3804
     # via premailer
 datadog==0.45.0 \
     --hash=sha256:144fce48bda79484b102349f159c4ea4c7cd35361f9e0d031ddf931a922a38a4 \
@@ -831,12 +829,10 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-kombu[sqs]==5.3.0 \
+kombu==5.3.0 \
     --hash=sha256:d084ec1f96f7a7c37ba9e816823bdbc08f0fc7ddb3a5be555805e692102297d8 \
     --hash=sha256:fa9be55281bb351ba9da582b2a74e3dd5015b8d075b287e4d16f0b2f25fefcc2
-    # via
-    #   -r requirements/main.in
-    #   celery
+    # via celery
 limits==3.5.0 \
     --hash=sha256:3ad525faeb7e1c63859ca1cae34c9ed22a8f22c9ea9d96e2f412869f6b36beb9 \
     --hash=sha256:b728c9ab3c6163997b1d11a51d252d951efd13f0d248ea2403383952498f8a22
@@ -1218,9 +1214,7 @@ pycparser==2.21 \
     # via cffi
 pycurl==7.44.1 \
     --hash=sha256:5bcef4d988b74b99653602101e17d8401338d596b9234d263c728a0c3df003e8
-    # via
-    #   -r requirements/main.in
-    #   kombu
+    # via -r requirements/main.in
 pydantic==1.10.8 \
     --hash=sha256:052d8654cb65174d6f9490cc9b9a200083a82cf5c3c5d3985db765757eb3b375 \
     --hash=sha256:0c6fafa0965b539d7aab0a673a046466d23b86e4b0e8019d25fd53f4df62c277 \
@@ -1528,7 +1522,6 @@ urllib3==1.26.16 \
     #   botocore
     #   elasticsearch
     #   google-auth
-    #   kombu
     #   requests
     #   sentry-sdk
 venusian==3.0.0 \
