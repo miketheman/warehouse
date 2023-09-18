@@ -109,7 +109,9 @@ class TestExcWithMessage:
 
 
 class TestValidation:
-    @pytest.mark.parametrize("version", ["1.0", "30a1", "1!1", "1.0-1", "v1.0"])
+    @pytest.mark.parametrize(
+        "version", ["1.0", "30a1", "1!1", "1.0-1", "v1.0", "01.0.0"]
+    )
     def test_validates_valid_pep440_version(self, version):
         form, field = pretend.stub(), pretend.stub(data=version)
         legacy._validate_pep440_version(form, field)
@@ -2883,6 +2885,7 @@ class TestFileUpload:
         [
             ("flufl.enum", "flufl_enum"),
             ("foo-.bar", "foo_bar"),
+            ("Foo", "foo"),
         ],
     )
     def test_upload_succeeds_pep427_normalized_filename(
