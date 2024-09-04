@@ -776,6 +776,9 @@ class TestManageAccount:
             },
             session=pretend.stub(
                 flash=pretend.call_recorder(lambda *a, **kw: None),
+                invalidate=pretend.call_recorder(lambda: None),
+                items=lambda: [],
+                update=pretend.call_recorder(lambda *a, **kw: None),
                 record_password_timestamp=lambda ts: None,
             ),
             find_service=lambda *a, **kw: user_service,
@@ -807,6 +810,8 @@ class TestManageAccount:
         view = views.ManageVerifiedAccountViews(request)
 
         assert isinstance(view.change_password(), HTTPSeeOther)
+        assert request.session.invalidate.calls == [pretend.call()]
+        assert request.session.update.calls == [pretend.call({})]
         assert request.session.flash.calls == [
             pretend.call("Password updated", queue="success")
         ]

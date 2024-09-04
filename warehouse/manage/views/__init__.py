@@ -424,6 +424,12 @@ class ManageVerifiedAccountViews(ManageAccountMixin):
         )
 
         if form.validate():
+            # invalidate the session to prevent replay attacks,
+            # keep the user logged in by copying the session data
+            data = dict(self.request.session.items())
+            self.request.session.invalidate()
+            self.request.session.update(data)
+
             self.user_service.update_user(
                 self.request.user.id, password=form.new_password.data
             )
