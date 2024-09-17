@@ -224,7 +224,7 @@ class SessionFactory:
     cookie_name = "session_id"
     max_age = 12 * 60 * 60  # 12 hours
 
-    def __init__(self, secret, url):
+    def __init__(self, secret, url) -> None:
         self.redis = redis.StrictRedis.from_url(url)
         self.signer = crypto.TimestampSigner(secret, salt="session")
 
@@ -275,7 +275,7 @@ class SessionFactory:
 
         return session
 
-    def _process_response(self, request, response):
+    def _process_response(self, request, response) -> None:
         # If the request has an InvalidSession, then the view can't have
         # accessed the session, and we can just skip all of this anyways.
         if isinstance(request.session, InvalidSession):
