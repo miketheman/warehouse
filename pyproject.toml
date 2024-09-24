@@ -70,6 +70,9 @@ format-command = "ruff format --stdin-filename {filename}"
 
 [tool.mypy]  # tombi: lint.rules.schema-resolution.disabled = true
 python_version = "3.14"
+allow_redefinition = true
+warn_no_return = true
+warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
