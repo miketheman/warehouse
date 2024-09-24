@@ -75,7 +75,9 @@ class ModelBase(DeclarativeBase):
 
     def __repr__(self):
         inst = inspect(self)
-        self.__repr__ = make_repr(
+        # Modify all instances of this class to have a custom __repr__ that
+        # includes all attributes of the column.
+        self.__repr__ = make_repr(  # type: ignore[method-assign]
             *[c_attr.key for c_attr in inst.mapper.column_attrs], _self=self
         )
         return self.__repr__()

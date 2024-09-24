@@ -105,7 +105,7 @@ def includeme(config):
             secret_key=config.registry.settings["aws.secret_key"],
         )
         kwargs["http_auth"] = RequestsAWSV4SignerAuth(credentials, aws_region, "es")
-    config.registry["opensearch.client"] = opensearchpy.OpenSearch(**kwargs)
+    config.registry["opensearch.client"] = opensearchpy.OpenSearch(**kwargs)  # type: ignore[arg-type] # Underlying client expects a Transport class
     config.registry["opensearch.index"] = p.path.strip("/")
     config.registry["opensearch.shards"] = int(qs.get("shards", ["1"])[0])
     config.registry["opensearch.replicas"] = int(qs.get("replicas", ["0"])[0])
