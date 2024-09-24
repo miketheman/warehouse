@@ -46,6 +46,6 @@ def sync(config):
     # Check to see if any of our existing classifiers need their ordering
     # changed
     for classifier in all_classifiers:
-        classifier.ordering = sorted_classifiers.index(classifier.classifier)
+        classifier.ordering = sorted_classifiers.index(classifier.classifier)  # type: ignore[arg-type] # https://github.com/pypi/warehouse/issues/16986
 
     session.commit()

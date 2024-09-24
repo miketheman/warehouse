@@ -63,7 +63,7 @@ class SponsorForm(wtforms.Form):
 
         require_white_logo = self.footer.data or self.infra_sponsor.data
         if require_white_logo and not self.white_logo_url.data:
-            self.white_logo.errors.append(
+            self.white_logo.errors.append(  # type: ignore[attr-defined] # https://github.com/pallets-eco/wtforms/issues/865
                 "Must upload white logo if is a footer sponsor."
             )
             return False

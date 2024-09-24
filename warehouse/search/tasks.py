@@ -132,7 +132,7 @@ def reindex(self, request):
                     aws_region,
                     "es",
                 )
-            client = opensearchpy.OpenSearch(**kwargs)
+            client = opensearchpy.OpenSearch(**kwargs)  # type: ignore[arg-type] # Underlying client expects a Transport class
             number_of_replicas = request.registry.get("opensearch.replicas", 0)
             refresh_interval = request.registry.get("opensearch.interval", "1s")
 
