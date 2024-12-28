@@ -28,6 +28,7 @@ kombu[sqs]>=5.4,<5.5  # https://github.com/jazzband/pip-tools/issues/1577
 limits
 linehaul
 lxml
+meilisearch
 more-itertools
 msgpack
 natsort

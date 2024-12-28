@@ -128,6 +128,10 @@ cachetools==5.5.0 \
     # via
     #   google-auth
     #   premailer
+camel-converter[pydantic]==4.0.1 \
+    --hash=sha256:0cba7ca1354a29ca2191983deecc9dcf28889f606c28d6ed18ac7d4586b163ac \
+    --hash=sha256:401414549ae4ac4073e38cdc4aa6d464dc534fc40aa06ff787bf0960b0c86535
+    # via meilisearch
 cattrs==24.1.2 \
     --hash=sha256:67c7495b760168d931a10233f979b28dc04daf853b30752246f4f8471c6d68d0 \
     --hash=sha256:8028cfe1ff5382df59dd36474a86e02d817b06eaf8af84555441bac915d2ef85
@@ -1228,6 +1232,10 @@ mdurl==0.1.2 \
     --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
     --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
     # via markdown-it-py
+meilisearch==0.33.0 \
+    --hash=sha256:4aed5b4b0c5f5602574476de37d436701f2f31768b75df64b13cde0cad5988a3 \
+    --hash=sha256:62c4890b11744f1dde14248a1bb05d7873ceaae6e2119783f391813ad4661a62
+    # via -r requirements/main.in
 more-itertools==10.5.0 \
     --hash=sha256:037b0d3203ce90cca8ab1defbbdac29d5f993fc20131f3664dc8d6acfa872aef \
     --hash=sha256:5482bfef7849c25dc3c6dd53a6173ae4795da2a41a80faea6700d9f5846c5da6
@@ -1672,6 +1680,7 @@ pydantic[email]==2.10.3 \
     --hash=sha256:cb5ac360ce894ceacd69c403187900a02c4b20b693a9dd1d643e1effab9eadf9
     # via
     #   -r requirements/main.in
+    #   camel-converter
     #   pypi-attestations
     #   sigstore
     #   sigstore-rekor-types
@@ -1976,6 +1985,7 @@ requests==2.32.3 \
     #   google-cloud-storage
     #   id
     #   jsonschema-path
+    #   meilisearch
     #   opensearch-py
     #   premailer
     #   requests-aws4auth
