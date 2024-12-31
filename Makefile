@@ -130,6 +130,7 @@ resetdb: .state/docker-build-base
 
 .state/search-indexed: .state/db-populated
 	$(MAKE) reindex
+	$(MAKE) reindex-ms
 	mkdir -p .state && touch .state/search-indexed
 
 .state/db-populated: .state/db-migrated
@@ -160,6 +161,9 @@ checkdb: .state/docker-build-base
 
 reindex: .state/docker-build-base
 	docker compose run --rm web python -m warehouse search reindex
+
+reindex-ms: .state/docker-build-base
+	docker compose run --rm web python -m warehouse search reindex-ms
 
 shell: .state/docker-build-base
 	docker compose run --rm web python -m warehouse shell
