@@ -10,11 +10,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import binascii
 import os
+import typing
 import urllib.parse
 
+from datetime import datetime
+from json import JSONEncoder
+
 import certifi
+import meilisearch
 import opensearchpy
 import redis
 import requests_aws4auth
@@ -22,7 +29,7 @@ import sentry_sdk
 
 from opensearchpy.helpers import parallel_bulk
 from redis.lock import Lock
-from sqlalchemy import func, select, text
+from sqlalchemy import Integer, cast, extract, func, select, text
 from urllib3.util import parse_url
 
 from warehouse import tasks
@@ -35,6 +42,9 @@ from warehouse.packaging.models import (
 )
 from warehouse.packaging.search import Project as ProjectDocument
 from warehouse.search.utils import get_index
+
+if typing.TYPE_CHECKING:
+    from pyramid.request import Request
 
 
 def _project_docs(db, project_name: str | None = None):
@@ -244,3 +254,162 @@ def unindex_project(self, request, project_name):
     except redis.exceptions.LockError as exc:
         sentry_sdk.capture_exception(exc)
         raise self.retry(countdown=60, exc=exc)
+
+
+class CustomEncoder(JSONEncoder):
+    """Used when passing objects to Meilisearch"""
+
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            # TODO: Need to figure out the right input to humanize
+            #  Meilisearch does not support a "date" type, convert to a string
+            #  We also currently store the `created_timestamp` as an integer,
+            #  might be better to only use that, and skip custom encoder completely?
+            #  Also need to decide whether we want `str(obj)` or `obj.isoformat()` here
+            return obj.isoformat()
+
+        # Let the base class default method raise the TypeError
+        return super().default(obj)
+
+
+@tasks.task(bind=True, ignore_result=True, acks_late=True)
+def reindex_ms(self, request: Request) -> None:
+    """
+    Recreate the Search Index using Meilisearch.
+
+    TODO: Needs a lot of work before it's production-ready.
+     See inline for lots of TODOs.
+    """
+    # TODO: Convert to an interface and client
+    client = meilisearch.Client(url="http://meilisearch:7700", timeout=30)
+
+    # TODO: Move index creation/swapping to a separate function
+    #  Implement a `blue/green` index naming strategy?
+    #  https://www.meilisearch.com/docs/learn/getting_started/indexes#swapping-indexes
+    #  For now, drop the index and recreate it
+    client.index("projects").delete()
+
+    client.create_index("projects", options={"primaryKey": "normalized_name"})
+    client.index("projects").update_searchable_attributes(
+        # Controls the searchable fields, as well as the search order for relevancy.
+        # The order is important, as the earlier fields are considered more important.
+        # https://www.meilisearch.com/docs/learn/relevancy/displayed_searchable_attributes#the-searchableattributes-list
+        [
+            "name",
+            "normalized_name",  # TODO: Should normalized_name come first?
+            "keywords",
+            # "keywords_array"  # TODO: need a data migration to fully populate
+            "description",
+            "summary",
+            "classifiers",
+            "home_page",  # TODO: Do we even need this?
+        ]
+    )
+    client.index("projects").update_filterable_attributes(
+        [
+            "classifiers",
+            # TODO: What does facets give us?
+            #  https://www.meilisearch.com/docs/learn/filtering_and_sorting/search_with_facet_filters
+            # "keywords_array",
+        ]
+    )
+    client.index("projects").update_sortable_attributes(
+        [
+            "created_timestamp",
+        ]
+    )
+    # TODO: Do we need to customize separators to make `.` and `-` tokens
+    #  that shouldn't be split, as they are used in package names,
+    #  or will the other tokenization settings be enough?
+    #  See https://www.meilisearch.com/docs/reference/api/settings#non-separator-tokens
+    # client.index("projects").update_non_separator_tokens([".", "-"])
+
+    # TODO: Likely need to tweak the ranking rules to get the best search results
+    #  https://www.meilisearch.com/docs/learn/relevancy/ranking_rules
+    client.index("projects").update_ranking_rules(
+        [
+            "attribute",  # use attribute order first (name, normalized_name, etc.)
+            "words",
+            "typo",
+            "proximity",
+            "sort",
+            "exactness",
+        ]
+    )
+    # TODO: Determine what attributes we don't care about returning to the user
+    #  and exclude them from the response, saving bytes over the wire
+    client.index("projects").update_displayed_attributes(
+        [
+            "name",
+            "summary",
+            "created_timestamp",
+        ]
+    )
+
+    index = client.index("projects")
+
+    # TODO: Wrap up everything with a singleton lock
+    # r = redis.StrictRedis.from_url(request.registry.settings["celery.scheduler_url"])
+    # try:
+    #     with SearchLock(r, timeout=30 * 60, blocking_timeout=30):
+    #         ...
+    # except redis.exceptions.LockError as exc:
+    #     sentry_sdk.capture_exception(exc)
+    #     raise self.retry(countdown=60, exc=exc)
+
+    # TODO: extract to a utility function, and add filter for `project_name` is passed
+    project_name: str | None = None
+
+    classifiers_subquery = (
+        select(func.array_agg(Classifier.classifier))
+        .select_from(ReleaseClassifiers)
+        .join(Classifier, Classifier.id == ReleaseClassifiers.trove_id)
+        .filter(Release.id == ReleaseClassifiers.release_id)
+        .correlate(Release)
+        .scalar_subquery()
+        .label("classifiers")
+    )
+    projects_to_index = (
+        select(
+            Project.name,
+            Project.normalized_name,
+            Release.keywords,
+            # Release.keywords_array, # TODO: need a data migration to fully populate
+            # TODO: Trim the description to a reasonable length.
+            #  In dev, cuts ~33% of the index size,
+            #  leave whole for now to compare search results with OpenSearch
+            # func.left(Description.raw, 1000).label("description"),
+            Description.raw.label("description"),
+            Release.summary,
+            classifiers_subquery,
+            Release.home_page,  # TODO: Do we even need this?
+            # Release.created,  # TODO: Is created_timestamp is enough for our needs?
+            cast(extract("epoch", Release.created), Integer).label("created_timestamp"),
+        )
+        .select_from(Release)
+        .join(Description)
+        .join(Project)
+        .filter(
+            Release.yanked.is_(False),
+            Release.files.any(),
+            # Filter by project_name if provided
+            Project.name == project_name if project_name else text("TRUE"),
+        )
+        .order_by(
+            Project.name,
+            Release.is_prerelease.nullslast(),
+            Release._pypi_ordering.desc(),
+        )
+        .distinct(Project.name)
+        .execution_options(yield_per=1000)
+    )
+
+    results = request.db.execute(projects_to_index)
+
+    for partition in results.partitions():
+        # Transform each result to a dict representation of the row
+        results_batch = [row._asdict() for row in partition]
+        # Add (or replace existing) documents, with a custom encoder to handle datetime
+        index.add_documents(results_batch, serializer=CustomEncoder)
+        # TODO: Log/metrics the number of documents added
+        print(f"Added {len(results_batch)} documents to the index")

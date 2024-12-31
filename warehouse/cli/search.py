@@ -13,7 +13,7 @@
 import click
 
 from warehouse.cli import warehouse
-from warehouse.search.tasks import reindex as _reindex
+from warehouse.search.tasks import reindex as _reindex, reindex_ms as _reindex_ms
 
 
 @warehouse.group()
@@ -32,3 +32,13 @@ def reindex(config):
 
     request = config.task(_reindex).get_request()
     config.task(_reindex).run(request)
+
+
+@search.command()
+@click.pass_obj
+def reindex_ms(config):
+    """
+    Recreate the Search Index using Meilisearch.
+    """
+    request = config.task(_reindex_ms).get_request()
+    config.task(_reindex_ms).run(request)
