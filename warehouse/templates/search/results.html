@@ -29,6 +29,19 @@
 </li>
 {%- endmacro %}
 
+{% macro project_snippet_ms(item) -%}
+<li>
+  <a class="package-snippet" href="{{ request.route_path('packaging.project', name=item.normalized_name) }}">
+    <h3 class="package-snippet__title">
+      <span class="package-snippet__name">{{ item.name }}</span>
+      {# TODO: Need to figure out how to conditionally parse str/int into timestamp for humanize() call #}
+      <span class="package-snippet__created">{{ humanize(item.created_timestamp | ctime)  }}</span>
+    </h3>
+    <p class="package-snippet__description">{{ item.summary }}</p>
+  </a>
+</li>
+{%- endmacro %}
+
 
 {% macro suggestion_link(best_guess) -%}
 
@@ -168,6 +181,10 @@
                 {{ suggestion_link(page.collection.best_guess) }}
               {% endif %}
             </p>
+              {# TODO: Remove, this is a temporary solution to display the estimated results #}
+            <p>
+              {{ results["estimatedTotalHits"] }} results (estimated)
+            </p>
             {% endif %}
           </div>
           <div>
@@ -207,11 +224,19 @@
         {% if term or applied_filters %}
         <div>
           {% if page.items %}
+        <!-- TODO: Remove, split the results into two equal columns to display side by side. Hides MS results if OS has none. -->
+        <div class="split-layout split-layout--table">
           <ul class="unstyled" aria-label="{% trans %}Search results{% endtrans %}">
             {% for item in page.items %}
               {{ project_snippet(item) }}
             {% endfor %}
           </ul>
+          <ul class="unstyled" aria-label="{% trans %}Search results{% endtrans %}">
+            {% for item in results["hits"] %}
+              {{ project_snippet_ms(item) }}
+            {% endfor %}
+          </ul>
+        </div>
           {% else %}
           <div class="callout-block">
             <p>
