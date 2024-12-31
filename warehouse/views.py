@@ -18,6 +18,7 @@ import typing
 
 from pathlib import Path
 
+import meilisearch
 import opensearchpy
 
 from pyramid.exceptions import PredicateMismatch
@@ -460,12 +461,37 @@ def search(request):
     metrics = request.find_service(IMetricsService, context=None)
     metrics.histogram("warehouse.views.search.results", page.item_count)
 
+    # TODO: Convert to an interface and client?
+    client = meilisearch.Client("http://meilisearch:7700", timeout=30)
+
+    # TODO: Implement pagination
+
+    opt_params: dict[str, ...] = {}
+
+    # TODO: Rudimentary Classifier filtering
+    if classifiers:
+        opt_params["filter"] = " AND ".join([f"classifiers='{c}'" for c in classifiers])
+    # TODO: Rudimentary ordering - maybe this is enough? It's not pretty, but it works.
+    if order == "-created":
+        opt_params["sort"] = ["created_timestamp:desc"]
+    # TODO: Manual testing, no UI for this sort order yet
+    elif order == "created":
+        opt_params["sort"] = ["created_timestamp:asc"]
+
+    results = client.index("projects").search(query=querystring, opt_params=opt_params)
+    metrics.increment(
+        "warehouse.views.search.estimated_results",
+        results["estimatedTotalHits"],
+        tags=["engine:meilisearch"],
+    )
+
     return {
         "page": page,
         "term": querystring,
         "order": order,
         "available_filters": process_available_filters(),
         "applied_filters": request.params.getall("c"),
+        "results": results,
     }
 
 
