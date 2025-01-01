@@ -125,6 +125,8 @@ def _connect_src_settings(config) -> list:
         settings.extend(
             [
                 f"{replaced.url}/livereload",
+                # TODO: Figure out deployment strategy for this
+                "http://localhost:7700/",
             ]
         )
 
@@ -134,25 +136,33 @@ def _connect_src_settings(config) -> list:
 def _script_src_settings(config) -> list:
     settings = [
         SELF,
-        "https://*.googletagmanager.com",
-        "https://www.google-analytics.com",  # Remove when disabling UA
-        "https://ssl.google-analytics.com",  # Remove when disabling UA
-        "*.fastly-insights.com",
-        "*.ethicalads.io",
-        # Hash for v1.4.0 of ethicalads.min.js
-        "'sha256-U3hKDidudIaxBDEzwGJApJgPEf2mWk6cfMWghrAa6i0='",
-        "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/",
-        # Hash for v3.2.2 of MathJax tex-svg.js
-        "'sha256-1CldwzdEg2k1wTmf7s5RWVd7NMXI/7nxxjJM2C4DqII='",
-        # Hash for MathJax inline config
-        # See warehouse/templates/packaging/detail.html
-        "'sha256-0POaN8stWYQxhzjKS+/eOfbbJ/u4YHO5ZagJvLpMypo='",
+        "*",
+        "'unsafe-eval'",  # https://github.com/algolia/instantsearch/issues/2868#issuecomment-1466461792
+        "'unsafe-inline'",
+        # "https://*.googletagmanager.com",
+        # "https://www.google-analytics.com",  # Remove when disabling UA
+        # "https://ssl.google-analytics.com",  # Remove when disabling UA
+        # "*.fastly-insights.com",
+        # "*.ethicalads.io",
+        # # Hash for v1.4.0 of ethicalads.min.js
+        # "'sha256-U3hKDidudIaxBDEzwGJApJgPEf2mWk6cfMWghrAa6i0='",
+        # "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/",
+        # # Hash for v3.2.2 of MathJax tex-svg.js
+        # "'sha256-1CldwzdEg2k1wTmf7s5RWVd7NMXI/7nxxjJM2C4DqII='",
+        # # Hash for MathJax inline config
+        # # See warehouse/templates/packaging/detail.html
+        # "'sha256-0POaN8stWYQxhzjKS+/eOfbbJ/u4YHO5ZagJvLpMypo='",
     ]
 
     if config.registry.settings.get("warehouse.env") == Environment.development:
         settings.extend(
             [
-                f"{config.registry.settings['livereload.url']}/livereload.js",
+                # f"{config.registry.settings['livereload.url']}/livereload.js",
+                # # TODO: Remove when moved to installable package
+                # "https://cdn.jsdelivr.net/npm/@meilisearch/instant-meilisearch/",
+                # "https://cdn.jsdelivr.net/npm/instantsearch.js@4",
+                # # hash for inline script
+                # "'sha256-jCR/3nbwGsjbZwSDmQRKx5FxRRJYpxgHgBNyYbOlbHw='",
             ]
         )
 
@@ -194,6 +204,8 @@ def includeme(config):
                     "'sha256-mQyxHEuwZJqpxCw3SLmc4YOySNKXunyu2Oiz1r3/wAE='",
                     "'sha256-OCf+kv5Asiwp++8PIevKBYSgnNLNUZvxAp4a7wMLuKA='",
                     "'sha256-h5LOiLhk6wiJrGsG5ItM0KimwzWQH/yAcmoJDJL//bY='",
+                    # TODO: Remove when moved to custom, since these conflict
+                    "https://cdn.jsdelivr.net/npm/@meilisearch/instant-meilisearch/",
                 ],
                 "worker-src": ["*.fastly-insights.com"],
             }

@@ -13,6 +13,60 @@
 -#}
 {% extends "base.html" %}
 
+{% block extra_css %}
+  <!-- TODO: Migrate to custom styles -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@meilisearch/instant-meilisearch/templates/basic_search.css" />
+{% endblock %}
+
+{% block extra_js_after_body %}
+{# TODO: Migrate to custom Stimulus script instead of inline #}
+{% set project_path_base = request.route_path('packaging.project', name='') %}
+  <script src="https://cdn.jsdelivr.net/npm/@meilisearch/instant-meilisearch/dist/instant-meilisearch.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@4"></script>
+  <script>
+    const search = instantsearch({
+      indexName: "projects",
+      searchClient: instantMeiliSearch(
+        "http://localhost:7700",
+        "dummy api key",
+        {
+            placeholderSearch: false, // default: true
+        },
+      ).searchClient
+      });
+      search.addWidgets([
+        instantsearch.widgets.searchBox({
+          container: "#searchbox"
+        }),
+        instantsearch.widgets.configure({ hitsPerPage: 8 }),
+        instantsearch.widgets.hits({
+          container: "#hits",
+          templates: {
+            item(hit, { html, components }) {
+              return html`
+                <!-- TODO: Replace placeholder with actual project name, and remove double slash -->
+                <a class="package-snippet" href="{{ project_path_base }}${hit.name}/">
+                    <h3 class="package-snippet__title">
+                      <span class="package-snippet__name">
+                        ${components.Highlight({ hit, attribute: 'name' })}
+                      </span>
+                      <span class="package-snippet__created">
+                        ${hit.created_timestamp}
+                      </span>
+                    </h3>
+                    <p class="package-snippet__description">
+                      ${components.Snippet({ hit, attribute: 'summary' })}
+                    </p>
+                </a>
+              `;
+            }
+          }
+        })
+      ]);
+      search.start();
+  </script>
+{% endblock extra_js_after_body %}
+
 {% import "warehouse:templates/includes/pagination.html" as pagination %}
 
 {% block title %}{% trans %}Search results{% endtrans %}{% endblock %}
@@ -146,6 +200,10 @@
             </a>
           </li>
         </ul>
+      </div>
+      <div class="">
+        <div id="searchbox"></div>
+        <div id="hits"></div>
       </div>
       {% endif %}
       <form action="{{ request.route_path('search') }}">
