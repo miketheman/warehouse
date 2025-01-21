@@ -117,14 +117,16 @@ class Event:
         source_id: Mapped[UUID]
         source: HasEvents
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def ip_address_id(cls):
         return mapped_column(
             ForeignKey("ip_addresses.id", onupdate="CASCADE", ondelete="CASCADE"),
             nullable=True,
         )
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def ip_address(cls):
         return orm.relationship(IpAddress)
 
@@ -165,7 +167,8 @@ class HasEvents:
         # - Needs to support both `cls.Event(...)` and `cls.Event.column` access
         Event: typing.Any
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def events(cls: type[typing.Any]):
         # Returns AppenderQuery at runtime (`lazy="dynamic"`)
         # No return type annotation: `Mapped[]` implies `uselist=False`,

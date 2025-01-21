@@ -60,13 +60,15 @@ class HasObservers:
 
     observer: AssociationProxy[Observer | None]
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def observer_association_id(
         cls: type[typing.Any],
     ) -> Mapped[UUID | None]:
         return mapped_column(ForeignKey(f"{ObserverAssociation.__tablename__}.id"))
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def observer_association(
         cls: type[typing.Any],
     ) -> Mapped[ObserverAssociation]:
@@ -207,7 +209,8 @@ class HasObservations:
         some_model.observations  # a list of Observation objects
     """
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def observations(cls: type[typing.Any]) -> Mapped[list[Observation]]:
         cls.Observation = type(
             f"{cls.__name__}Observation",

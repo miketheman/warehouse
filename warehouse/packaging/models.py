@@ -648,7 +648,8 @@ DynamicFieldsEnum = ENUM(
 class Release(HasObservations, db.Model):
     __tablename__ = "releases"
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def __table_args__(cls):
         return (
             Index("release_created_idx", cls.created.desc()),
@@ -943,7 +944,8 @@ class PackageType(enum.StrEnum):
 class File(HasEvents, db.Model):
     __tablename__ = "release_files"
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def __table_args__(cls):
         return (
             CheckConstraint("sha256_digest ~* '^[A-F0-9]{64}$'"),
@@ -1072,7 +1074,8 @@ class ReleaseClassifiers(db.ModelBase):
 class JournalEntry(db.ModelBase):
     __tablename__ = "journals"
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def __table_args__(cls):
         return (
             Index("journals_changelog", "submitted_date", "name", "version", "action"),
