@@ -61,11 +61,13 @@ class HasObservers:
     observer: AssociationProxy[Observer | None]
 
     @declared_attr
-    def observer_association_id(cls: typing.Any) -> Mapped[UUID | None]:
+    @classmethod
+    def observer_association_id(cls: type[typing.Any]) -> Mapped[UUID | None]:
         return mapped_column(ForeignKey(f"{ObserverAssociation.__tablename__}.id"))
 
     @declared_attr
-    def observer_association(cls: typing.Any) -> Mapped[ObserverAssociation]:
+    @classmethod
+    def observer_association(cls: type[typing.Any]) -> Mapped[ObserverAssociation]:
         name = cls.__name__
         discriminator = name.lower()
 
@@ -221,11 +223,12 @@ class HasObservations:
         Observation: typing.ClassVar[type[_ObservationBase]]
 
     # `cls` is the mapped subclass at mapper-configuration time, not an
-    # instance. It's typed `Any` (not `type[Any]`) so type checkers don't treat
-    # it as an instance-method `self` and reject the class-level attribute reads
-    # and assignment below. Public types stay precise via the declarations above.
+    # instance. `@classmethod` says so directly, so type checkers accept the
+    # class-level attribute reads and assignment below. Public types stay
+    # precise via the declarations above.
     @declared_attr
-    def observations(cls: typing.Any) -> Mapped[list[_ObservationBase]]:
+    @classmethod
+    def observations(cls: type[typing.Any]) -> Mapped[list[_ObservationBase]]:
         observation_cls = type(
             f"{cls.__name__}Observation",
             (Observation, db.Model),

@@ -303,7 +303,13 @@ class OrganizationApplicationFactory:
 
 
 class OrganizationMixin:
-    @declared_attr
+    if typing.TYPE_CHECKING:
+        # Supplied by the concrete subclasses that mix this in; declared here
+        # so the `__table_args__` directive below can read it.
+        __tablename__: str
+
+    @declared_attr.directive
+    @classmethod
     def __table_args__(cls):
         return (
             CheckConstraint(
@@ -761,7 +767,8 @@ class OrganizationApplication(OrganizationMixin, HasObservations, db.Model):
     __tablename__ = "organization_applications"
     __repr__ = make_repr("name")
 
-    @declared_attr
+    @declared_attr.directive
+    @classmethod
     def normalized_name(cls):
         return column_property(func.normalize_pep426_name(cls.name))
 

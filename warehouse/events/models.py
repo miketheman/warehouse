@@ -134,6 +134,7 @@ class Event:
         ) -> None: ...
 
     @declared_attr
+    @classmethod
     def ip_address_id(cls):
         return mapped_column(
             ForeignKey("ip_addresses.id", onupdate="CASCADE", ondelete="CASCADE"),
@@ -141,6 +142,7 @@ class Event:
         )
 
     @declared_attr
+    @classmethod
     def ip_address(cls):
         return orm.relationship(IpAddress)
 
@@ -189,15 +191,16 @@ class HasEvents:
         Event: typing.ClassVar[type[_EventBase]]
 
     # `cls` is the mapped subclass at mapper-configuration time, not an
-    # instance. It's typed `Any` (not `type[Any]`) so type checkers don't treat
-    # it as an instance-method `self` and reject the class-level attribute reads
-    # and assignment below. Public types stay precise via the declarations above.
+    # instance. `@classmethod` says so directly, so type checkers accept the
+    # class-level attribute reads and assignment below. Public types stay
+    # precise via the declarations above.
     #
     # No return annotation: `events` is a `lazy="dynamic"` relationship, but
     # `declared_attr` only accepts a `Mapped[...]` return (not `DynamicMapped`),
     # and `Mapped[...]` would wrongly model it as a scalar/eager collection.
     @declared_attr
-    def events(cls: typing.Any):
+    @classmethod
+    def events(cls: type[typing.Any]):
         event_cls = type(
             f"{cls.__name__}Event",
             (Event, db.Model),
