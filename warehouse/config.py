@@ -71,6 +71,7 @@ class RootFactory:
                 Permissions.AdminIpAddressesRead,
                 Permissions.AdminIpAddressesWrite,
                 Permissions.AdminJournalRead,
+                Permissions.AdminMacaroonsInspect,
                 Permissions.AdminMacaroonsRead,
                 Permissions.AdminMacaroonsWrite,
                 Permissions.AdminObservationsRead,
@@ -99,6 +100,8 @@ class RootFactory:
                 Permissions.AdminUsersWrite,
                 Permissions.AdminUsersEmailWrite,
                 Permissions.AdminUsersAccountRecoveryWrite,
+                Permissions.AdminVulnerabilitiesRead,
+                Permissions.AdminVulnerabilitiesWrite,
             ),
         ),
         (

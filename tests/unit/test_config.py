@@ -559,6 +559,7 @@ def test_root_factory_access_control_list():
                 Permissions.AdminIpAddressesRead,
                 Permissions.AdminIpAddressesWrite,
                 Permissions.AdminJournalRead,
+                Permissions.AdminMacaroonsInspect,
                 Permissions.AdminMacaroonsRead,
                 Permissions.AdminMacaroonsWrite,
                 Permissions.AdminObservationsRead,
@@ -587,6 +588,8 @@ def test_root_factory_access_control_list():
                 Permissions.AdminUsersWrite,
                 Permissions.AdminUsersEmailWrite,
                 Permissions.AdminUsersAccountRecoveryWrite,
+                Permissions.AdminVulnerabilitiesRead,
+                Permissions.AdminVulnerabilitiesWrite,
             ),
         ),
         (
