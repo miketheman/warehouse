@@ -65,12 +65,26 @@ def _assert_has_cors_headers(headers):
 
 
 class TestHTTPExceptionView:
-    def test_returns_context_when_no_template(self, pyramid_config):
-        pyramid_config.testing_add_renderer("non-existent.html")
+    def test_renders_generic_template_when_no_specific_template(self, pyramid_config):
+        # No 499.html exists, so we fall back to the generic error-base.html
+        # template rather than the unstyled default response.
+        renderer = pyramid_config.testing_add_renderer("error-base.html")
 
-        response = context = pretend.stub(status_code=499)
+        context = pretend.stub(
+            status="499 My Cool Status",
+            status_code=499,
+            title="My Cool Status",
+            headers={},
+        )
         request = pretend.stub(context=None)
-        assert httpexception_view(context, request) is response
+        response = httpexception_view(context, request)
+
+        assert response.status_code == 499
+        assert response.status == "499 My Cool Status"
+        _assert_has_cors_headers(response.headers)
+        renderer.assert_(
+            project_name=None, error_title="My Cool Status", error_code=499
+        )
 
     @pytest.mark.parametrize("status_code", [403, 404, 410, 500])
     def test_renders_template(self, pyramid_config, status_code):

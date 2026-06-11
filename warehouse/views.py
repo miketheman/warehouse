@@ -114,9 +114,17 @@ def httpexception_view(exc, request):
                 request=request,
             )
     except LookupError:
-        # We don't have a customized template for this error, so we'll just let
-        # the default happen instead.
-        return exc
+        # We don't have a customized template for this status code, so fall
+        # back to a generic styled error page.
+        response = render_to_response(
+            "error-base.html",
+            {
+                "project_name": project_name,
+                "error_title": exc.title,
+                "error_code": exc.status_code,
+            },
+            request=request,
+        )
 
     # Copy over the important values from our HTTPException to our new response
     # object.
