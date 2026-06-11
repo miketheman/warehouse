@@ -94,6 +94,11 @@ def httpexception_view(exc, request):
                 "script-src": ["https://www.youtube.com", "https://s.ytimg.com"],
             }
         )
+    template_context = {
+        "project_name": project_name,
+        "error_title": exc.title,
+        "error_code": exc.status_code,
+    }
     try:
         # Lightweight version of 404 page for `/simple/`
         if isinstance(exc, HTTPNotFound) and request.path.startswith("/simple/"):
@@ -110,7 +115,7 @@ def httpexception_view(exc, request):
         else:
             response = render_to_response(
                 f"{exc.status_code}.html",
-                {"project_name": project_name},
+                template_context,
                 request=request,
             )
     except LookupError:
@@ -118,11 +123,7 @@ def httpexception_view(exc, request):
         # back to a generic styled error page.
         response = render_to_response(
             "error-base.html",
-            {
-                "project_name": project_name,
-                "error_title": exc.title,
-                "error_code": exc.status_code,
-            },
+            template_context,
             request=request,
         )
 

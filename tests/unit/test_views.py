@@ -93,6 +93,7 @@ class TestHTTPExceptionView:
         context = pretend.stub(
             status=f"{status_code} My Cool Status",
             status_code=status_code,
+            title="My Cool Status",
             headers={},
         )
         request = pretend.stub(context=None)
@@ -110,6 +111,7 @@ class TestHTTPExceptionView:
         context = pretend.stub(
             status=f"{status_code} My Cool Status",
             status_code=status_code,
+            title="My Cool Status",
             headers={"Foo": "Bar"},
         )
         request = pretend.stub(context=None)
@@ -197,7 +199,11 @@ class TestHTTPExceptionView:
         assert render_to_response.calls == [
             pretend.call(
                 "404.html",
-                {"project_name": project.name},
+                {
+                    "project_name": project.name,
+                    "error_title": "Not Found",
+                    "error_code": 404,
+                },
                 request=request,
             )
         ]
@@ -224,7 +230,11 @@ class TestHTTPExceptionView:
         assert render_to_response.calls == [
             pretend.call(
                 "404.html",
-                {"project_name": "missing-project"},
+                {
+                    "project_name": "missing-project",
+                    "error_title": "Not Found",
+                    "error_code": 404,
+                },
                 request=request,
             )
         ]

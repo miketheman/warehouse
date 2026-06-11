@@ -1,16 +1,16 @@
-#: warehouse/views.py:158
+#: warehouse/views.py:159
 msgid ""
 "You must verify your **primary** email address before you can perform "
 "this action."
 msgstr ""
 
-#: warehouse/views.py:174
+#: warehouse/views.py:175
 msgid ""
 "Two-factor authentication must be enabled on your account to perform this"
 " action."
 msgstr ""
 
-#: warehouse/views.py:385
+#: warehouse/views.py:386
 msgid "Locale updated"
 msgstr ""
 
@@ -1099,15 +1099,15 @@ msgstr ""
 msgid "We looked everywhere but couldn't find this page"
 msgstr ""
 
-#: warehouse/templates/404.html:18
+#: warehouse/templates/404.html:17
 msgid "And now for something <br> <span>completely different</span>"
 msgstr ""
 
-#: warehouse/templates/404.html:24
+#: warehouse/templates/404.html:23
 msgid "Monty Python - The Cheese Shop Sketch"
 msgstr ""
 
-#: warehouse/templates/404.html:33 warehouse/templates/500.html:18
+#: warehouse/templates/404.html:32 warehouse/templates/500.html:18
 #: warehouse/templates/accounts/two-factor.html:35
 #: warehouse/templates/base.html:342 warehouse/templates/base.html:348
 #: warehouse/templates/base.html:354 warehouse/templates/base.html:360
@@ -1206,7 +1206,7 @@ msgstr ""
 msgid "External link"
 msgstr ""
 
-#: warehouse/templates/404.html:35
+#: warehouse/templates/404.html:34
 msgid "View video transcript"
 msgstr ""
 
@@ -1237,8 +1237,8 @@ msgstr ""
 msgid "Check our status page"
 msgstr ""
 
-#: warehouse/templates/500.html:25
-msgid "Error code 500"
+#: warehouse/templates/500.html:25 warehouse/templates/error-base.html:24
+msgid "Error code"
 msgstr ""
 
 #: warehouse/templates/500.html:30
@@ -1559,10 +1559,6 @@ msgstr ""
 
 #: warehouse/templates/confirm-action.html:11
 msgid "Are you sure?"
-msgstr ""
-
-#: warehouse/templates/error-base.html:24
-msgid "Error code"
 msgstr ""
 
 #: warehouse/templates/error-base.html:27
