@@ -87,7 +87,11 @@ def _send_email_to_user(
     allow_unverified=False,
     repeat_window=None,
     override_from=None,
-):
+) -> str | None:
+    """
+    Schedule the email for delivery, returning the reason it was skipped (if
+    it was) or None (if it was scheduled).
+    """
     # If we were not given a specific email object, then we'll default to using
     # the User's primary email address.
     if email is None:
@@ -97,15 +101,17 @@ def _send_email_to_user(
     # have to skip sending email to them. If we have an email for them, then we will
     # check to see if it is verified, if it is not then we will also skip sending email
     # to them **UNLESS** we've been told to allow unverified emails.
-    if email is None or not (email.verified or allow_unverified):
-        return
+    if email is None:
+        return "no-email-address"
+    if not (email.verified or allow_unverified):
+        return "unverified-email"
 
     # If we've already sent this email within the repeat_window, don't send it.
     if repeat_window is not None:
         sender = request.find_service(IEmailSender)
         last_sent = sender.last_sent(to=email.email, subject=msg.subject)
         if last_sent and (datetime.datetime.now() - last_sent) <= repeat_window:
-            return
+            return "repeat-window"
 
     request.task(send_email).delay(
         _compute_recipient(user, email.email),
@@ -130,6 +136,8 @@ def _send_email_to_user(
             },
         },
     )
+
+    return None
 
 
 def _email(
@@ -187,7 +195,7 @@ def _email(
                 else:
                     user, email = recipient, None
 
-                _send_email_to_user(
+                skip_reason = _send_email_to_user(
                     request,
                     user,
                     msg,
@@ -196,19 +204,23 @@ def _email(
                     repeat_window=repeat_window,
                     override_from=override_from,
                 )
+                tags = [
+                    f"template_name:{name}",
+                    f"allow_unverified:{allow_unverified}",
+                    (
+                        f"repeat_window:{repeat_window.total_seconds()}"
+                        if repeat_window
+                        else "repeat_window:none"
+                    ),
+                ]
                 metrics = request.find_service(IMetricsService, context=None)
-                metrics.increment(
-                    "warehouse.emails.scheduled",
-                    tags=[
-                        f"template_name:{name}",
-                        f"allow_unverified:{allow_unverified}",
-                        (
-                            f"repeat_window:{repeat_window.total_seconds()}"
-                            if repeat_window
-                            else "repeat_window:none"
-                        ),
-                    ],
-                )
+                if skip_reason is None:
+                    metrics.increment("warehouse.emails.scheduled", tags=tags)
+                else:
+                    metrics.increment(
+                        "warehouse.emails.skipped",
+                        tags=[*tags, f"reason:{skip_reason}"],
+                    )
 
             return context
 

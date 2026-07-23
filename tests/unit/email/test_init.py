@@ -1409,7 +1409,7 @@ class TestAccountDeletionEmail:
         ]
 
     def test_account_deletion_email_unverified(
-        self, pyramid_request, pyramid_config, monkeypatch
+        self, pyramid_request, pyramid_config, metrics, monkeypatch
     ):
         stub_user = pretend.stub(
             id="id",
@@ -1455,6 +1455,17 @@ class TestAccountDeletionEmail:
         html_renderer.assert_(username=stub_user.username)
         assert pyramid_request.task.calls == []
         assert send_email.delay.calls == []
+        assert metrics.increment.calls == [
+            pretend.call(
+                "warehouse.emails.skipped",
+                tags=[
+                    "template_name:account-deleted",
+                    "allow_unverified:False",
+                    "repeat_window:none",
+                    "reason:unverified-email",
+                ],
+            )
+        ]
 
 
 class TestPrimaryEmailChangeEmail:
@@ -6422,6 +6433,7 @@ class TestSendUnrecognizedLoginEmail:
         pyramid_request,
         pyramid_config,
         pyramid_services,
+        metrics,
         monkeypatch,
     ):
         stub_user = pretend.stub(
@@ -6476,6 +6488,17 @@ class TestSendUnrecognizedLoginEmail:
         ]
         assert pyramid_request.task.calls == []
         assert send_email.delay.calls == []
+        assert metrics.increment.calls == [
+            pretend.call(
+                "warehouse.emails.skipped",
+                tags=[
+                    "template_name:unrecognized-login",
+                    "allow_unverified:True",
+                    "repeat_window:900.0",
+                    "reason:repeat-window",
+                ],
+            )
+        ]
 
 
 class TestAccountAssociationAddedEmail:
