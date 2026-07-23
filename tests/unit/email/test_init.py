@@ -6417,6 +6417,66 @@ class TestSendUnrecognizedLoginEmail:
             )
         ]
 
+    def test_send_unrecognized_login_email_throttled_within_repeat_window(
+        self,
+        pyramid_request,
+        pyramid_config,
+        pyramid_services,
+        monkeypatch,
+    ):
+        stub_user = pretend.stub(
+            id="id",
+            username="username",
+            name="",
+            email="email@example.com",
+            primary_email=pretend.stub(email="email@example.com", verified=True),
+        )
+
+        subject_renderer = pyramid_config.testing_add_renderer(
+            "email/unrecognized-login/subject.txt"
+        )
+        subject_renderer.string_response = "Email Subject"
+        body_renderer = pyramid_config.testing_add_renderer(
+            "email/unrecognized-login/body.txt"
+        )
+        body_renderer.string_response = "Email Body"
+        html_renderer = pyramid_config.testing_add_renderer(
+            "email/unrecognized-login/body.html"
+        )
+        html_renderer.string_response = "<p>Email HTML Body</p>"
+
+        # The same email went out moments ago, e.g. on a previous login attempt
+        email_service = pretend.stub(
+            last_sent=pretend.call_recorder(
+                lambda to, subject: (
+                    datetime.datetime.now() - datetime.timedelta(minutes=1)
+                )
+            )
+        )
+        pyramid_services.register_service(email_service, IEmailSender, None, name="")
+
+        send_email = pretend.stub(
+            delay=pretend.call_recorder(lambda *args, **kwargs: None)
+        )
+        pyramid_request.task = pretend.call_recorder(lambda *args, **kwargs: send_email)
+        monkeypatch.setattr(email, "send_email", send_email)
+        pyramid_request.user = stub_user
+        pyramid_request.registry.settings = {"mail.sender": "noreply@example.com"}
+
+        email.send_unrecognized_login_email(
+            pyramid_request,
+            stub_user,
+            ip_address="127.0.0.1",
+            user_agent="Test Browser",
+            token="test-token",
+        )
+
+        assert email_service.last_sent.calls == [
+            pretend.call(to=stub_user.email, subject="Email Subject")
+        ]
+        assert pyramid_request.task.calls == []
+        assert send_email.delay.calls == []
+
 
 class TestAccountAssociationAddedEmail:
     def test_send_account_association_added_email(

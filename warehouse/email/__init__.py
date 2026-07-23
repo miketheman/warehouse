@@ -1029,7 +1029,13 @@ def send_recovery_code_reminder_email(request, user):
     return {"username": user.username}
 
 
-@_email("unrecognized-login", allow_unverified=True)
+# If the repeat_window changes, update the copy in
+# warehouse/templates/accounts/unrecognized-device.html to match.
+@_email(
+    "unrecognized-login",
+    allow_unverified=True,
+    repeat_window=datetime.timedelta(minutes=15),
+)
 def send_unrecognized_login_email(request, user, *, ip_address, user_agent, token):
     return {
         "username": user.username,

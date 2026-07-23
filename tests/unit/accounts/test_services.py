@@ -2371,7 +2371,43 @@ class TestDeviceIsKnown:
         )
         assert len(events) == 0
 
-    def test_device_is_pending_not_expired(self, user_service, monkeypatch, db_request):
+    def test_device_is_pending_not_expired_resends_email(
+        self, user_service, monkeypatch, db_request
+    ):
+        user = UserFactory.create(with_verified_primary_email=True)
+        unique_login = UserUniqueLoginFactory.create(
+            user=user, ip_address=db_request.ip_address, status="pending"
+        )
+        original_expires = unique_login.expires
+        send_email = pretend.call_recorder(lambda *a, **kw: None)
+        monkeypatch.setattr(services, "send_unrecognized_login_email", send_email)
+        token_service = pretend.stub(dumps=lambda d: "fake_token", max_age=60)
+        user_service.request = db_request
+        db_request.find_service = lambda *a, **kw: token_service
+        db_request.headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) "
+                "Gecko/20100101 Firefox/15.0.1"
+            )
+        }
+
+        assert not user_service.device_is_known(user.id, user_service.request)
+        # The pending login's expiry is untouched, but the email is re-sent
+        # (throttling happens downstream via the email's repeat_window).
+        assert unique_login.expires == original_expires
+        assert send_email.calls == [
+            pretend.call(
+                user_service.request,
+                user,
+                ip_address=REMOTE_ADDR,
+                user_agent="Firefox (Ubuntu)",
+                token="fake_token",
+            )
+        ]
+
+    def test_device_is_pending_does_not_record_new_device_event(
+        self, user_service, monkeypatch, db_request
+    ):
         user = UserFactory.create(with_verified_primary_email=True)
         UserUniqueLoginFactory.create(
             user=user, ip_address=db_request.ip_address, status="pending"
@@ -2383,7 +2419,17 @@ class TestDeviceIsKnown:
         db_request.find_service = lambda *a, **kw: token_service
 
         assert not user_service.device_is_known(user.id, user_service.request)
-        assert send_email.calls == []
+
+        # A repeat attempt from a known-but-pending device is not a new device
+        events = (
+            user_service.db.query(User.Event)
+            .filter(
+                User.Event.source_id == user.id,
+                User.Event.tag == EventTag.Account.LoginNewDevice,
+            )
+            .all()
+        )
+        assert len(events) == 0
 
     def test_device_is_pending_and_expired(self, user_service, monkeypatch, db_request):
         user = UserFactory.create(with_verified_primary_email=True)

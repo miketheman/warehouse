@@ -762,8 +762,6 @@ class DatabaseUserService:
             )
             .one_or_none()
         )
-        should_send_email = False
-
         # Check if we've seen this device and it's been confirmed
         if unique_login and unique_login.status == UniqueLoginStatus.CONFIRMED:
             return True
@@ -779,8 +777,6 @@ class DatabaseUserService:
             )
             request.db.add(unique_login)
             request.db.flush()  # generaten token id  # ast-grep-ignore: db-flush
-            should_send_email = True
-
             user.record_event(
                 tag=EventTag.Account.LoginNewDevice,
                 request=request,
@@ -791,16 +787,15 @@ class DatabaseUserService:
         if unique_login.expires and unique_login.expires < datetime.datetime.now(
             datetime.UTC
         ):
-            # The previous token has expired, update the expiry for
-            # the login and re-send the email
+            # The previous confirmation window has lapsed, extend the expiry
             unique_login.expires = datetime.datetime.now(
                 datetime.UTC
             ) + datetime.timedelta(seconds=token_service.max_age)
-            should_send_email = True
 
-        # If we don't need to send an email, short-circuit
-        if not should_send_email:
-            return False
+        # A confirmation email is (re-)sent on every unconfirmed login attempt
+        # so that a lost, delayed, or bounced email doesn't strand the user.
+        # `send_unrecognized_login_email` declares a `repeat_window`, which
+        # throttles how often the email can actually go out.
 
         # Get User Agent Information
         user_agent_info_data = {}
