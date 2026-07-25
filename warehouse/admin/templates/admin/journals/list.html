@@ -53,12 +53,26 @@
   <div class="card-footer">
     <div class="row">
       <div class="col-sm-5">
-        {{ pagination.summary(journals) }}
+        {% if journals.items %}
+          {% if journals.approx_total %}
+            Showing {{ journals.items|length }} of ~{{ journals.approx_total }} entries
+          {% else %}
+            Showing {{ journals.items|length }} entries
+          {% endif %}
+        {% else %}
+          No entries found
+        {% endif %}
       </div>
-
       <div class="col-sm-7">
         <div class="float-right">
-          {{ pagination.paginate(journals) }}
+          <ul class="pagination">
+            <li class="page-item previous{% if not journals.prev_url %} disabled{% endif %}">
+              <a href="{{ journals.prev_url if journals.prev_url else '#' }}" class="page-link">Previous</a>
+            </li>
+            <li class="page-item next{% if not journals.next_url %} disabled{% endif %}">
+              <a href="{{ journals.next_url if journals.next_url else '#' }}" class="page-link">Next</a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

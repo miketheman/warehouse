@@ -2,7 +2,6 @@
 
 import shlex
 
-from paginate_sqlalchemy import SqlalchemyOrmPage as SQLAlchemyORMPage
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config
 from sqlalchemy import and_
@@ -10,7 +9,7 @@ from sqlalchemy.orm import joinedload
 
 from warehouse.authnz import Permissions
 from warehouse.packaging.models import JournalEntry
-from warehouse.utils.paginate import paginate_url_factory
+from warehouse.utils.paginate import KeysetCursorPage
 
 
 @view_config(
@@ -22,15 +21,8 @@ from warehouse.utils.paginate import paginate_url_factory
 def journals_list(request):
     q = request.params.get("q")
 
-    try:
-        page_num = int(request.params.get("page", 1))
-    except ValueError:
-        raise HTTPBadRequest("'page' must be an integer.") from None
-
-    journals_query = (
-        request.db.query(JournalEntry)
-        .options(joinedload(JournalEntry.submitted_by))
-        .order_by(JournalEntry.submitted_date.desc(), JournalEntry.id.desc())
+    journals_query = request.db.query(JournalEntry).options(
+        joinedload(JournalEntry.submitted_by)
     )
 
     if q:
@@ -49,13 +41,21 @@ def journals_list(request):
             else:
                 filters.append(JournalEntry.name.ilike(term))
 
+        # if filters:
+        #     base_query = base_query.filter(and_(*filters))
         journals_query = journals_query.filter(and_(*filters))
 
-    journals = SQLAlchemyORMPage(
-        journals_query,
-        page=page_num,
-        items_per_page=25,
-        url_maker=paginate_url_factory(request),
-    )
+    try:
+        journals = KeysetCursorPage(
+            request,
+            journals_query,
+            (JournalEntry.submitted_date, JournalEntry.id),
+            page_size=25,
+            estimate_total=True,
+            table_name=JournalEntry.__tablename__,
+        )
+    except ValueError as e:
+        # Bad cursor or both after/before provided
+        raise HTTPBadRequest(str(e)) from None
 
     return {"journals": journals, "query": q}
